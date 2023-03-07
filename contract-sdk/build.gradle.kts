@@ -1,23 +1,21 @@
 import com.google.protobuf.gradle.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
-//source: https://github.com/google/protobuf-gradle-plugin/blob/master/examples/exampleKotlinDslProject/build.gradle.kts
+// how did I get this to compile protobuf
+// https://github.com/google/protobuf-gradle-plugin/blob/master/examples/exampleKotlinDslProject/build.gradle.kts
 
 plugins {
-	id("org.springframework.boot") version "2.7.9"
-	id("io.spring.dependency-management") version "1.0.15.RELEASE"
 	kotlin("jvm") version "1.6.21"
-	kotlin("plugin.spring") version "1.6.21"
-
-
 	id("com.google.protobuf") version "0.8.19"
+	`maven-publish`
+	id("com.google.cloud.artifactregistry.gradle-plugin") version "2.1.5"
 }
-
-java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
 	mavenCentral()
+	maven {
+		url = uri("artifactregistry://us-central1-maven.pkg.dev/a-proj-to-be-deleted/java-repo")
+	}
+
 }
 
 dependencies {
@@ -32,12 +30,9 @@ dependencies {
 	}
 
 	testImplementation("junit:junit:4.12")
-	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-//becomes available through plugins ANDfs dependencies
+//becomes available through plugins AND dependencies
 protobuf {
 	protoc {
 		// The artifact spec for the Protobuf Compiler
@@ -64,13 +59,18 @@ protobuf {
 	}
 }
 
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "11"
+publishing {
+	repositories {
+		maven {
+			url = uri("artifactregistry://us-central1-maven.pkg.dev/a-proj-to-be-deleted/java-repo")
+		}
+	}
+	publications {
+		create<MavenPublication>("publicationForLib") {
+			group = "tg-group"
+			artifactId = "contract-sdk" //how to control this via environment variable or semver
+			from(components["java"])
+		}
 	}
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
