@@ -27,7 +27,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tg-group:contract-sdk:1.0.1")
 	implementation("net.devh:grpc-spring-boot-starter:2.14.0.RELEASE")
-
+	implementation("joda-time:joda-time:2.10.12")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
