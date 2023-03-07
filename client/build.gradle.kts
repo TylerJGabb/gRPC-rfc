@@ -9,25 +9,24 @@ plugins {
 	id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.0"
 }
 
-group = "server"
+group = "client"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
 	mavenCentral()
-	maven { url = uri("https://repo.spring.io/milestone") }
-	maven { url = uri("https://repo.spring.io/snapshot") }
 	maven {
 		url = uri("artifactregistry://us-central1-maven.pkg.dev/a-proj-to-be-deleted/java-repo")
 	}
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("net.devh:grpc-client-spring-boot-starter:2.14.0.RELEASE")
 	implementation("tg-group:contract-sdk:1.0.1")
-	implementation("net.devh:grpc-server-spring-boot-starter:2.14.0.RELEASE")
-	implementation("joda-time:joda-time:2.10.12")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
