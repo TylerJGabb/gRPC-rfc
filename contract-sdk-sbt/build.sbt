@@ -8,7 +8,8 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies ++= Seq(
-  "com.google.protobuf" % "protobuf-java" % "3.13.0" % "protobuf"
+  "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+  "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
 )
 
 Compile / PB.targets := Seq(
