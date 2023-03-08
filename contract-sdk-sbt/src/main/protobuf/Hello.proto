@@ -1,0 +1,16 @@
+
+syntax = "proto3";
+
+option java_package = "contract.sdk.proto";
+
+service HelloWorldService {
+  rpc hello(HelloRequest) returns (HelloResponse) {}
+}
+
+message HelloRequest {
+  string request_text = 1;
+}
+
+message HelloResponse {
+  string response_text = 1;
+}
