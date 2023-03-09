@@ -17,3 +17,6 @@ The [contract-sdk](./contract-sdk) project defines protobuf files, and will buil
 
 - The client uses this contract to build sending/receiving logic around strong types and well defined interfaces
 - The server implements a given version of the contract, so as long as the client and server are using the same SDK version we know they will be able to communicate
+
+# Some Tools To Help You
+- here is a link to the grpc docs on how to implement and start a server `https://grpc.io/docs/languages/java/basics/#starting-the-server`
