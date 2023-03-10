@@ -1,5 +1,6 @@
 import HelloWorldServer.logger
 import contract.sdk.proto.Hello.{HelloRequest, HelloResponse, HelloWorldServiceGrpc}
+import io.grpc.protobuf.services.ProtoReflectionService
 import io.grpc.{Server, ServerBuilder}
 
 import java.util.logging.Logger
@@ -10,19 +11,23 @@ object HelloWorldServer {
   def main(args: Array[String]): Unit = {
     val server = new HelloWorldServer(ExecutionContext.global)
     server.start()
-    Thread.sleep(10000000)
     server.blockUntilShutdown()
   }
 }
 
 class HelloWorldServer(executionContext: ExecutionContext) { self =>
-  val server: Server = null
+  var server: Server = _
 
   private def start(): Unit = {
     val serviceImpl: HelloWorldServiceGrpc.HelloWorldService = new ServiceImpl()
     val builder = ServerBuilder.forPort(50051)
     builder.addService(HelloWorldServiceGrpc.bindService(serviceImpl, executionContext))
-    builder.build().start()
+
+    // enables api discovery via reflection
+    // https://github.com/grpc/grpc-java/blob/master/documentation/server-reflection-tutorial.md
+    builder.addService(ProtoReflectionService.newInstance())
+    server = builder.build()
+    server.start()
     logger.info(s"Server started, listening on 50051")
     sys.addShutdownHook {
       System.err.println("*** shutting down gRPC server since JVM is shutting down")
@@ -47,7 +52,7 @@ class HelloWorldServer(executionContext: ExecutionContext) { self =>
   // https://github.com/xuwei-k/grpc-scala-sample/blob/master/grpc-scala/src/main/scala/io/grpc/examples/helloworld/HelloWorldServer.scala
   class ServiceImpl extends HelloWorldServiceGrpc.HelloWorldService {
     override def hello(request: HelloRequest): Future[HelloResponse] = {
-      val reply = HelloResponse(responseText = s"hey! thanks for the '${request.requestText}")
+      val reply = HelloResponse(responseText = s"hey! thanks for the message of '${request.requestText}'}")
       Future.successful(reply)
     }
   }
