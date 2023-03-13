@@ -1,0 +1,34 @@
+name: Publish Sdk
+
+on:
+  push:
+    branches:
+      - main
+#    paths:
+#      - 'contract-sdk/**'
+
+jobs:
+  publish:
+    runs_on: ubuntu-latest
+    container: hseeberger/scala-sbt:8u265_1.3.13_2.12.12
+    steps:
+
+      - uses: "actions/checkout@v3"
+
+      - name: Auth
+        uses: "google-github-actions/auth@v0"
+        with:
+          workload_identity_provider: projects/85551166456/locations/global/workloadIdentityPools/identity-pool-01/providers/github-provider
+          service_account:  wif-grpc-0001@a-proj-to-be-deleted.iam.gserviceaccount.com
+          create_credentials_file: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Publish
+        working-directory: contract-sdk
+        run: sbt 'set version := "pub.from.gha"' publish
+
