@@ -23,6 +23,9 @@ jobs:
           service_account: wif-grpc-0001@a-proj-to-be-deleted.iam.gserviceaccount.com
           create_credentials_file: true
 
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+
       - name: Verify Auth
         run: |
           export REPO_NAME=java-repo
@@ -32,14 +35,13 @@ jobs:
           gcloud artifacts packages list --repository=$REPO_NAME
           gcloud artifacts versions list --package=gRPC-rfc:contract-sdk
 
-      - uses: "actions/checkout@v3"
-
       - name: Setup Java
         uses: actions/setup-java@v2
         with:
           distribution: temurin
           java-version: 11
 
+      - uses: "actions/checkout@v3"
       - name: Publish
         working-directory: contract-sdk
         run: sbt 'set version := "pub.from.gha"' publish
