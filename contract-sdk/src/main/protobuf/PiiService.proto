@@ -1,0 +1,20 @@
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "contract.sdk.proto";
+option java_outer_classname = "PiiProto";
+
+service PiiService {
+  rpc ExecutePiiQuery(PiiRequest) returns (PiiResponse) {}
+  rpc StreamPiiQuery(stream PiiRequest) returns (stream PiiResponse) {}
+}
+
+message PiiRequest {
+  string token = 1;
+  string query = 2;
+}
+
+message PiiResponse {
+  string query_result = 1;
+}
