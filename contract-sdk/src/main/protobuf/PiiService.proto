@@ -11,10 +11,13 @@ service PiiService {
 }
 
 message PiiRequest {
+  // the token
   string token = 1;
+  // the query
   string query = 2;
 }
 
 message PiiResponse {
+  // the query result
   string query_result = 1;
 }
