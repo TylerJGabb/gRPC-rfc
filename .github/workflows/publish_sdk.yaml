@@ -46,4 +46,5 @@ jobs:
       - name: Publish
         working-directory: contract-sdk
         # hard code version for now, use semver in future
-        run: "sbt 'set version := 2.0.3-akka' publish"
+        run: |
+          sbt 'set version := "2.0.3-akka"; publish'
