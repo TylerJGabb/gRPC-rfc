@@ -11,6 +11,7 @@ permissions:
   contents: "read"
   id-token: "write"
 
+#https://cloud.google.com/blog/products/identity-security/enabling-keyless-authentication-from-github-actions
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -18,7 +19,7 @@ jobs:
     steps:
       - uses: "actions/checkout@v3"
       - name: Auth
-        uses: "google-github-actions/auth@v0"
+        uses: "google-github-actions/auth@v0.4.0"
         with:
           workload_identity_provider: projects/85551166456/locations/global/workloadIdentityPools/identity-pool-01/providers/github-provider
           service_account: wif-grpc-0001@a-proj-to-be-deleted.iam.gserviceaccount.com
@@ -31,11 +32,6 @@ jobs:
         run: |
           export REPO_NAME=java-repo
           export LOCATION=us-central1
-          echo AUTH LIST
-          gcloud auth list
-          echo PROJECT LIST
-          gcloud projects list
-          echo PACKAGE VERSIONS
           gcloud config set artifacts/repository $REPO_NAME
           gcloud config set artifacts/location $LOCATION
           gcloud artifacts packages list --repository=$REPO_NAME
