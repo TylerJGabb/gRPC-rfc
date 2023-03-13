@@ -16,15 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     container: hseeberger/scala-sbt:8u265_1.3.13_2.12.12
     steps:
-
-      - uses: "actions/checkout@v3"
-
       - name: Auth
         uses: "google-github-actions/auth@v0"
         with:
           workload_identity_provider: projects/85551166456/locations/global/workloadIdentityPools/identity-pool-01/providers/github-provider
-          service_account:  wif-grpc-0001@a-proj-to-be-deleted.iam.gserviceaccount.com
+          service_account: wif-grpc-0001@a-proj-to-be-deleted.iam.gserviceaccount.com
           create_credentials_file: true
+
+      - name: Verify Auth
+        run: |
+          export REPO_NAME=java-repo
+          export LOCATION=us-central1
+          gcloud config set artifacts/repository $REPO_NAME
+          gcloud config set artifacts/location $LOCATION
+          gcloud artifacts packages list --repository=$REPO_NAME
+          gcloud artifacts versions list --package=gRPC-rfc:contract-sdk
+
+      - uses: "actions/checkout@v3"
 
       - name: Setup Java
         uses: actions/setup-java@v2
@@ -35,4 +43,3 @@ jobs:
       - name: Publish
         working-directory: contract-sdk
         run: sbt 'set version := "pub.from.gha"' publish
-
