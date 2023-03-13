@@ -45,4 +45,4 @@ jobs:
 
       - name: Publish
         working-directory: contract-sdk
-        run: sbt 'set version := "pub.from.gha"' publish
+        run: sbt publish

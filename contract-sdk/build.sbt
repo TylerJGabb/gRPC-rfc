@@ -1,4 +1,4 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / version := "1.0.2"
 ThisBuild / organization := "gRPC-rfc"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / name := "contract-sdk"
