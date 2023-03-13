@@ -31,7 +31,11 @@ jobs:
         run: |
           export REPO_NAME=java-repo
           export LOCATION=us-central1
+          echo AUTH LIST
           gcloud auth list
+          echo PROJECT LIST
+          gcloud projects list
+          echo PACKAGE VERSIONS
           gcloud config set artifacts/repository $REPO_NAME
           gcloud config set artifacts/location $LOCATION
           gcloud artifacts packages list --repository=$REPO_NAME
