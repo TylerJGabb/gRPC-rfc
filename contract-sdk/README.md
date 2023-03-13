@@ -1,6 +1,6 @@
-# Using SBT to generate gRPC models and Stubs
+# Using SBT to generate gRPC models and Stubs -- with support for AKKA
 
-- https://scalapb.github.io/docs/sbt-settings/
+- https://developer.lightbend.com/guides/akka-grpc-quickstart-scala/
 
 ## Publishing
 
