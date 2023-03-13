@@ -13,7 +13,7 @@ Compile / PB.targets := Seq(
   scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
 )
 
-// will get published as gRPC-rfc:contract-sdk:VERSION
+// will get published as gRPC-rfc:contract-sdk:version
 publishTo := Some("GAR" at "artifactregistry://us-central1-maven.pkg.dev/a-proj-to-be-deleted/java-repo")
 
 
