@@ -15,7 +15,7 @@ class PiiServiceImpl(system: ActorSystem[_]) extends PiiService {
       .run()
 
   override def executePiiQuery(in: PiiRequest): Future[PiiResponse] = {
-    Future.successful(PiiResponse(s"HUB mocked query result query=${in.query}, token=${in.token}"))
+    Future.successful(PiiResponse(s"SINGULAR: mocked query result query=${in.query}, token=${in.token}"))
   }
 
   override def streamPiiQuery(in: Source[PiiRequest, NotUsed]): Source[PiiResponse, NotUsed] = {

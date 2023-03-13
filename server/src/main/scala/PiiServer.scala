@@ -26,8 +26,12 @@ class PiiServer(system: ActorSystem[_]) {
     implicit val sys = system
     implicit val ex: ExecutionContext = system.executionContext
 
-    val service: HttpRequest => Future[HttpResponse] =
+    val service: HttpRequest => Future[HttpResponse] = {
+      // https://doc.akka.io/docs/akka-grpc/current/server/reflection.html
+      // server reflection is kind of like GQL Api Exploration, where the schema is provided
+      // by the server to whoever wants to read it
       PiiServiceHandler.withServerReflection(new PiiServiceImpl(system))
+    }
 
     val bound: Future[Http.ServerBinding] = Http(system)
       .newServerAt(interface = "127.0.0.1", port = 50052)
