@@ -10,43 +10,32 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 // https://developer.lightbend.com/guides/akka-grpc-quickstart-scala/
-object PiiServer {
-  def main(args: Array[String]): Unit = {
-    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
-      .withFallback(ConfigFactory.defaultApplication())
+object PiiServer extends App {
 
-    val system = ActorSystem[Nothing](Behaviors.empty, "PiiServer", conf)
-    new PiiServer(system).run()
+  implicit val system = ActorSystem[Nothing](Behaviors.empty, "PiiServer")
+  implicit val ex: ExecutionContext = system.executionContext
+
+  val service: HttpRequest => Future[HttpResponse] = {
+    // https://doc.akka.io/docs/akka-grpc/current/server/reflection.html
+    // server reflection is kind of like GQL Api Exploration, where the schema is provided
+    // by the server to whoever wants to read it
+    PiiServiceHandler.withServerReflection(new PiiServiceImpl(system))
   }
-}
 
-class PiiServer(system: ActorSystem[_]) {
+  val port = system.settings.config.getInt("grpc.server.port")
+  val bound: Future[Http.ServerBinding] = Http(system)
+    .newServerAt(interface = "0.0.0.0", port)
+    .bind(service)
+    .map(_.addToCoordinatedShutdown(hardTerminationDeadline = 10.seconds))
 
-  def run(): Future[Http.ServerBinding] = {
-    implicit val sys = system
-    implicit val ex: ExecutionContext = system.executionContext
-
-    val service: HttpRequest => Future[HttpResponse] = {
-      // https://doc.akka.io/docs/akka-grpc/current/server/reflection.html
-      // server reflection is kind of like GQL Api Exploration, where the schema is provided
-      // by the server to whoever wants to read it
-      PiiServiceHandler.withServerReflection(new PiiServiceImpl(system))
-    }
-
-    val bound: Future[Http.ServerBinding] = Http(system)
-      .newServerAt(interface = "127.0.0.1", port = 50052)
-      .bind(service)
-      .map(_.addToCoordinatedShutdown(hardTerminationDeadline = 10.seconds))
-
-    bound.onComplete {
-      case Success(binding) =>
-        val address = binding.localAddress
-        println(s"gRPC server bound to ${address.getHostString}:${address.getPort}")
-      case Failure(exception) =>
-        println("Failed to bind gRPC endpoint, terminating system", exception)
-        system.terminate()
-    }
-
-    bound
+  bound.onComplete {
+    case Success(binding) =>
+      val address = binding.localAddress
+      println(s"gRPC server bound to ${address.getHostString}:${address.getPort}")
+    case Failure(exception) =>
+      println("Failed to bind gRPC endpoint, terminating system", exception)
+      system.terminate()
   }
+
+
 }

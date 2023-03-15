@@ -10,7 +10,7 @@ class PiiServiceImpl(system: ActorSystem[_]) extends PiiService {
 
   val (inboundHub: Sink[PiiRequest, NotUsed], outboundHub: Source[PiiResponse, NotUsed]) =
     MergeHub.source[PiiRequest]
-      .map(request => PiiResponse(s"HUB mocked query result query=${request.query}, token=${request.token}"))
+      .map(request => PiiResponse(s"STREAM mocked query result query=${request.query}, token=${request.token}"))
       .toMat(BroadcastHub.sink[PiiResponse])(Keep.both)
       .run()
 
