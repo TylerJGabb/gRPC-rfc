@@ -20,4 +20,5 @@ message PiiRequest {
 message PiiResponse {
   // the query result
   string query_result = 1;
+  string bigquery_label = 2;
 }
