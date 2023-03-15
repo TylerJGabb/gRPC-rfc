@@ -15,8 +15,8 @@ fork := true
 resolvers += "My private artifacts" at "artifactregistry://us-central1-maven.pkg.dev/a-proj-to-be-deleted/java-repo"
 
 libraryDependencies ++= Seq(
-  "gRPC-rfc" % "contract-sdk" % "2.0.2-akka",
-  "io.grpc" % "grpc-services" % "1.53.0",
+  "gRPC-rfc" % "contract-sdk" % "2.0.4-akka",
+//  "io.grpc" % "grpc-services" % "1.53.0",
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,

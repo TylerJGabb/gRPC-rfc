@@ -31,9 +31,9 @@ object PiiClient extends App {
 
   def singleRequestRoute(query: String): Route = get {
     println(s"Performing single request-reply: $query")
-    val executeFuture = grpcClient.executePiiQuery(PiiRequest(token, query))
+    val executeFuture: Future[PiiResponse] = grpcClient.executePiiQuery(PiiRequest(token, query))
     val response: PiiResponse = Await.result(executeFuture, 10.seconds)
-    complete(s"response: ${response.queryResult}")
+    complete(s"response: ${response.queryResult}, label=${response.bigqueryLabel}")
   }
 
   def startStreamingRoute(query: String): Route = get {

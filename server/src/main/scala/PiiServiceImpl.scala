@@ -10,12 +10,25 @@ class PiiServiceImpl(system: ActorSystem[_]) extends PiiService {
 
   val (inboundHub: Sink[PiiRequest, NotUsed], outboundHub: Source[PiiResponse, NotUsed]) =
     MergeHub.source[PiiRequest]
-      .map(request => PiiResponse(s"STREAM mocked query result query=${request.query}, token=${request.token}"))
+      .map { request =>
+        val queryResult = s"STREAM mocked query result query=${request.query}, token=${request.token}"
+        val bigqueryLabel = "BQ label from streaming"
+        PiiResponse(
+          queryResult = queryResult,
+          bigqueryLabel = bigqueryLabel
+        )
+      }
       .toMat(BroadcastHub.sink[PiiResponse])(Keep.both)
       .run()
 
   override def executePiiQuery(in: PiiRequest): Future[PiiResponse] = {
-    Future.successful(PiiResponse(s"SINGULAR: mocked query result query=${in.query}, token=${in.token}"))
+    val queryResult = s"SINGULAR: mocked query result query=${in.query}, token=${in.token}"
+    val bigqueryLabel = "BQ label from singular execution"
+    val response = PiiResponse(
+      queryResult,
+      bigqueryLabel
+    )
+    Future.successful(response)
   }
 
   override def streamPiiQuery(in: Source[PiiRequest, NotUsed]): Source[PiiResponse, NotUsed] = {
