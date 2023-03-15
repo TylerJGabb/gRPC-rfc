@@ -1,63 +1,64 @@
-import akka.{Done, NotUsed}
+import akka.NotUsed
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.grpc.GrpcClientSettings
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source}
 import contract.sdk.proto.{PiiRequest, PiiResponse, PiiServiceClient}
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 
-object PiiClient {
+object PiiClient extends App {
 
   val token = "fake_token"
 
-  def main(args: Array[String]): Unit = {
-    implicit val sys: ActorSystem[_] = ActorSystem(Behaviors.empty, "PiiClient")
-    implicit val ex: ExecutionContext = sys.executionContext
+  implicit val sys: ActorSystem[_] = ActorSystem(Behaviors.empty, "PiiClient")
+  implicit val ex: ExecutionContext = sys.executionContext
 
-    val client = PiiServiceClient(GrpcClientSettings.fromConfig("piiServiceClient"))
+  val restPort = sys.settings.config.getInt("rest.api.port")
+  val grpcClient = PiiServiceClient(GrpcClientSettings.fromConfig("piiServiceClient"))
 
-    val queries = Seq("Q1", "Q2")
+  // https://doc.akka.io/docs/akka-http/current/routing-dsl/index.html#longer-example
+  def topLevelRoute: Route =
+    concat(
+      path("single-request" / Remaining)(singleRequestRoute),
+      path("start-streaming" / Remaining)(startStreamingRoute),
+    )
 
-    queries.foreach(singleRequestReply)
-    Thread.sleep(10000)
-    queries.foreach(streamingBroadcast)
-
-    def singleRequestReply(query: String): Unit = {
-      println(s"Performing single request-reply: $query")
-      val reply = client.executePiiQuery(PiiRequest(token, query))
-      reply.onComplete {
-        case Success(piiResponse) =>
-          println(piiResponse.queryResult)
-        case Failure(exception) =>
-          println(s"Error: $exception")
-      }
-    }
-
-    def streamingBroadcast(query: String): Unit = {
-      println(s"Performing streaming requests: $query")
-
-      val requestStream: Source[PiiRequest, NotUsed] =
-        Source
-          .tick(1.second, 1.second, "tick")
-          .zipWithIndex
-          .map { case (_, i) => i }
-          .map(i => PiiRequest(s"$query-$i"))
-          .mapMaterializedValue(_ => NotUsed)
-
-      val responseStream: Source[PiiResponse, NotUsed] = client.streamPiiQuery(requestStream)
-      val done: Future[Done] =
-        responseStream.runForeach(reply => println(s"$query for streaming reply: ${reply.queryResult}"))
-
-      done.onComplete {
-        case Success(_) =>
-          println("streaming done")
-        case Failure(e) =>
-          println(s"Error streaming: $e")
-      }
-    }
+  def singleRequestRoute(query: String): Route = get {
+    println(s"Performing single request-reply: $query")
+    val executeFuture = grpcClient.executePiiQuery(PiiRequest(token, query))
+    val response: PiiResponse = Await.result(executeFuture, 10.seconds)
+    complete(s"response: ${response.queryResult}")
   }
+
+  def startStreamingRoute(query: String): Route = get {
+    println(s"Performing streaming request for query: $query")
+    val tickingSource = Source.tick(1.second, 1.second, "tick")
+      .zipWithIndex
+      .take(10)
+      .map { case (_, i) => i }
+      .map(i => PiiRequest(token, s"$query - Part_$i"))
+      .mapMaterializedValue(_ => NotUsed)
+
+
+    val responseStream: Source[PiiResponse, NotUsed] = grpcClient.streamPiiQuery(tickingSource)
+    val concatSink = Sink.fold[String, String]("")(_ + "\n" + _)
+    val foldedResponses: RunnableGraph[Future[String]] = responseStream
+      .take(10)
+      .map(_.queryResult)
+      .toMat(concatSink)(Keep.right)
+
+
+    val result = Await.result(foldedResponses.run(), 30.seconds)
+    complete(result)
+  }
+
+  val bindingFuture = Http().newServerAt("0.0.0.0", restPort).bind(topLevelRoute)
+  println(s"REST server now online, listening on 0.0.0.0:$restPort")
+  Await.result(bindingFuture, Duration.Inf)
 }
